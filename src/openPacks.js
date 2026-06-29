@@ -9,6 +9,13 @@
     const { packs, blooks, rarities, user, requests } = blacket;
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     const packNames = Object.keys(packs).sort((a, b) => a.localeCompare(b));
+    const originalRequestsGet = requests.get;
+    requests.get = (url, callback) => {
+        if (url === "/worker/ping") return;
+
+        return originalRequestsGet(url, callback);
+    };
+
     const openPack = (packName) =>
         new Promise((resolve, reject) => {
             let settled = false;
@@ -91,10 +98,14 @@
     const openedBlooks = [];
     let opened = 0;
     let backoff = 2000; // this isn't really needed since rarities have rarity.wait, but it's safe to keep it just incase
+    let averageResponseTime = 0;
+    let responseTimes = 0;
 
     while (opened < amount) {
         try {
+            const startedAt = performance.now();
             const raw = await openPack(packName);
+            const responseTime = performance.now() - startedAt;
             const result = raw?.data ?? raw;
 
             if (result?.error) {
@@ -109,13 +120,16 @@
             const blookName = result.blook;
             const rarity = blooks[blookName]?.rarity;
             const wait = Number(rarities[rarity]?.wait ?? 1000);
+            responseTimes += 1;
+            averageResponseTime += (responseTime - averageResponseTime) / responseTimes;
+            const adjustedWait = Math.max(wait - averageResponseTime, 0);
 
             opened += 1;
             openedBlooks.push(blookName);
             backoff = 2000;
 
             console.log(`[${opened}/${amount}] ${blookName}`);
-            await sleep(wait);
+            await sleep(adjustedWait);
         } catch (error) {
             const message = error?.message ?? String(error);
             console.warn(
