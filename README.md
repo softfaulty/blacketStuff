@@ -10,6 +10,12 @@ read scripts before running them.
 
 do not paste random code into your console and then act shocked when the browser starts doing browser things.
 
+## Contributing
+
+pull requests and contributions are welcome.
+
+if you want to fix something, improve something, add a script, or make this repo slightly less cursed, go for it.
+
 ## Disclaimer
 
 i am not responsible for broken accounts, lost tokens, weird side effects, thermonuclear war, or you getting yelled at because you ran something you did not read.
