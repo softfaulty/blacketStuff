@@ -1,0 +1,46 @@
+name: Minify and publish scripts
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**/*.js'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  minify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7
+      
+      - name: Setup node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'lts/Jod'
+      
+      - name: Install Terser
+        run: npm install -g terser
+      
+      - name: Minify
+        run: |
+          mkdir -p minified
+          mkdir -p bookmarklets
+
+          find src -name "*.js" -type f | while read -r file; do
+            filename=$(basename "$file")
+
+            terser "$file" -o "minified/$filename" --compress pure_funcs="['console.debug']"
+
+            echo "javascript:$(cat "minified/$filename")" > "bookmarklets/$filename"
+          done
+      
+      - name: Commit and push changes
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "chore: auto-minify scripts and generate bookmarklets"
+          file_pattern: "minified/*.js bookmarklets/*.js"
