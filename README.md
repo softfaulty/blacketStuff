@@ -1,5 +1,13 @@
 # blacketStuff
 
+<p align="center">
+  <img src="https://img.shields.io/github/stars/softfaulty/blacketStuff?style=for-the-badge&logo=github" alt="GitHub stars">
+  <img src="https://img.shields.io/github/forks/softfaulty/blacketStuff?style=for-the-badge&logo=github" alt="GitHub forks">
+  <img src="https://img.shields.io/github/issues/softfaulty/blacketStuff?style=for-the-badge&logo=github" alt="GitHub issues">
+  <img src="https://img.shields.io/github/license/softfaulty/blacketStuff?style=for-the-badge" alt="License">
+  <img src="https://img.shields.io/github/last-commit/softfaulty/blacketStuff?style=for-the-badge&logo=git" alt="Last commit">
+</p>
+
 random blacket scripts, dev tools, experiments, and other things i made because apparently i cannot leave this game alone.
 
 if anything here helped you, star the repo. it feeds the tiny github number in my brain.
