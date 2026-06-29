@@ -20,6 +20,12 @@ read scripts before running them.
 
 do not paste random code into your console and then act shocked when the browser starts doing browser things.
 
+## Bookmarklet
+
+use the [`loader.txt` bookmarklet](https://github.com/softfaulty/blacketStuff/blob/main/bookmarklets/loader.txt) to load `openPacks.js`.
+
+copy the script, make a new bookmark, paste it into the URL field, then click it while on Blacket.
+
 ## Contributing
 
 pull requests and contributions are welcome.
