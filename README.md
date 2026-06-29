@@ -2,6 +2,8 @@
 
 random blacket scripts, dev tools, experiments, and other things i made because apparently i cannot leave this game alone.
 
+if anything here helped you, star the repo. it feeds the tiny github number in my brain.
+
 ## Usage
 
 read scripts before running them.
