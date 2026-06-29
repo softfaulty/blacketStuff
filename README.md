@@ -1,6 +1,8 @@
+<div align="center">
+
 # blacketStuff
 
-<p align="center">
+<p>
   <img src="https://img.shields.io/github/stars/softfaulty/blacketStuff?style=for-the-badge&logo=github" alt="GitHub stars">
   <img src="https://img.shields.io/github/forks/softfaulty/blacketStuff?style=for-the-badge&logo=github" alt="GitHub forks">
   <img src="https://img.shields.io/github/issues/softfaulty/blacketStuff?style=for-the-badge&logo=github" alt="GitHub issues">
@@ -35,3 +37,5 @@ if you point the finger at me because you managed to turn a console script into 
 ## License
 
 GPL-3.0-or-later.
+
+</div>
