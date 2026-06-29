@@ -1,0 +1,166 @@
+/*
+ * Copyright (C) 2026 softfault
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+"use strict";
+
+(async () => {
+    const { packs, blooks, rarities, user, requests } = blacket;
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    const packNames = Object.keys(packs).sort((a, b) => a.localeCompare(b));
+    const openPack = (packName) =>
+        new Promise((resolve, reject) => {
+            let settled = false;
+
+            const finish = (value) => {
+                if (settled) return;
+                settled = true;
+                resolve(value);
+            };
+
+            const fail = (error) => {
+                if (settled) return;
+                settled = true;
+                reject(error);
+            };
+
+            const returned = requests.post("/worker3/open", { pack: packName }, finish);
+
+            if (returned?.then) {
+                returned.then(finish).catch(fail);
+            } else if (returned !== undefined) {
+                finish(returned);
+            }
+
+            setTimeout(() => fail(new Error("open request timed out")), 30000);
+        });
+
+    console.log("available packs:", packNames.join(", "));
+
+    let packName = "";
+
+    while (!packName) {
+        const input = prompt("Pack name? Check the console for available packs :3");
+        if (input === null) return;
+
+        const trimmed = input.trim();
+        const match = packNames.find((name) => name.toLowerCase() === trimmed.toLowerCase());
+
+        if (!match) {
+            alert(`Unknown pack: ${trimmed}`);
+            continue;
+        }
+
+        const price = Number(packs[match]?.price);
+
+        if (!Number.isFinite(price) || price <= 0) {
+            alert("Pack has invalid price");
+            continue;
+        }
+
+        packName = match;
+    }
+
+    const pack = packs[packName];
+    const price = Number(pack.price);
+    const tokens = Number(String(user.tokens ?? 0).replace(/,/g, ""));
+    const maxAmount = Math.floor(tokens / price);
+
+    if (maxAmount < 1) {
+        alert(`Not enough tokens. ${packName} costs ${price}, you have ${tokens} :(`);
+        return;
+    }
+
+    let amount = 0;
+
+    while (!amount) {
+        const input = prompt(`How many ${packName} packs? Max: ${maxAmount}`);
+        if (input === null) return;
+
+        const parsed = Number(input);
+
+        if (!Number.isInteger(parsed) || parsed < 1 || parsed > maxAmount) {
+            alert(`Enter a whole number from 1 to ${maxAmount}`);
+            continue;
+        }
+
+        amount = parsed;
+    }
+
+    const openedBlooks = [];
+    let opened = 0;
+    let backoff = 2000; // this isn't really needed since rarities have rarity.wait, but it's safe to keep it just incase
+
+    while (opened < amount) {
+        try {
+            const raw = await openPack(packName);
+            const result = raw?.data ?? raw;
+
+            if (result?.error) {
+                throw new Error(result.error);
+            }
+
+            if (!result?.blook) {
+                console.warn("unexpected open response:", raw);
+                throw new Error("open request returned no blook");
+            }
+
+            const blookName = result.blook;
+            const rarity = blooks[blookName]?.rarity;
+            const wait = Number(rarities[rarity]?.wait ?? 1000);
+
+            opened += 1;
+            openedBlooks.push(blookName);
+            backoff = 2000;
+
+            console.log(`[${opened}/${amount}] ${blookName}`);
+            await sleep(wait);
+        } catch (error) {
+            const message = error?.message ?? String(error);
+            console.warn(
+                `[${opened + 1}/${amount}] ${message} Retrying in ${Math.ceil(backoff / 1000)}s`,
+            );
+            await sleep(backoff);
+            backoff = Math.min(backoff * 2, 30000);
+        }
+    }
+
+    const rarityNames = Object.keys(rarities);
+    const rarityOrder = Object.fromEntries(rarityNames.map((rarity, index) => [rarity, index]));
+    const counts = new Map();
+
+    for (const blookName of openedBlooks) {
+        counts.set(blookName, (counts.get(blookName) ?? 0) + 1);
+    }
+
+    const summary = [...counts.entries()]
+        .map(([blookName, count]) => {
+            const rarity = blooks[blookName]?.rarity ?? "unknown";
+            return { blookName, count, rarity };
+        })
+        .sort((a, b) => {
+            const aRarity = rarities[a.rarity];
+            const bRarity = rarities[b.rarity];
+
+            return (
+                Number(bRarity?.exp ?? -1) - Number(aRarity?.exp ?? -1) ||
+                Number(rarityOrder[b.rarity] ?? -1) - Number(rarityOrder[a.rarity] ?? -1) ||
+                a.blookName.localeCompare(b.blookName)
+            );
+        });
+
+    console.log("PACK SUMMARY");
+
+    for (const item of summary) {
+        const rarity = rarities[item.rarity];
+        const color = rarity?.color;
+
+        const style =
+            color === "rainbow"
+                ? "color: white; background: linear-gradient(90deg, red, orange, yellow, green, blue, violet); font-weight: bold;"
+                : `color: ${color ?? "white"}; font-weight: bold;`;
+
+        console.log(`%c${item.count}x ${item.blookName} (${item.rarity})`, style);
+    }
+})();
