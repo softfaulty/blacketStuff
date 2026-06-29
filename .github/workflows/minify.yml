@@ -34,13 +34,16 @@ jobs:
           find src -name "*.js" -type f | while read -r file; do
             filename=$(basename "$file")
 
-            terser "$file" -o "minified/$filename" --compress pure_funcs="['console.debug']"
+            basename_no_ext="${filename%.js}"
+            minified_name="${basename_no_ext}.minified.js"
 
-            echo "javascript:$(cat "minified/$filename")" > "bookmarklets/$filename"
+            terser "$file" -o "minified/$minified_name" --compress pure_funcs="['console.debug']"
+
+            echo "javascript:$(cat "minified/$minified_name")" > "bookmarklets/${basename_no_ext}.txt"
           done
       
       - name: Commit and push changes
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "chore: auto-minify scripts and generate bookmarklets"
-          file_pattern: "minified/*.js bookmarklets/*.js"
+          file_pattern: "minified/*.minified.js bookmarklets/*.txt"
